@@ -68,9 +68,7 @@ class GoogleVec(object):
 
 
     def load(self):
-        t0 = time.time()
         self.model = gensim.models.KeyedVectors.load_word2vec_format(self.path,unicode_errors='ignore', binary=True)
-        print(time.time() - t0)
         for i in range(len(self.model.index2word)):
             self.vocab[self.model.index2word[i]]=i
 
