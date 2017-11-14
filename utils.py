@@ -49,8 +49,6 @@ def proc_bodies(fn):
     return tmp
 
 class fnc1_Data(object):
-    #object for processing and presenting news to clf
-
     def __init__(self, stancesFile=None, bodiesFile=None, vecs=None):
         
         if stancesFile == None or bodiesFile == None:
