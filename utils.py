@@ -5,6 +5,7 @@
 # 2017/11/01    Mike Boyer  Ported to python3 and removed theano refs
 # 2017/11/05    Mike Boyer  Removed unused split() function and rewrote
 #                           "News" class as fnc1_Data() class.
+# 2017/11/16    Mike Boyer  Added vecs to fnc1_Data object
 ###########################################################################
 
 import csv
@@ -59,6 +60,7 @@ class fnc1_Data(object):
         self.stances = []
         self.body_vecs = {}
         self.stance_vecs = []
+        self.vecs = vecs #save the vecs for use in other methods
         
         #Read stances
         with open(stancesFile,'r') as f:
