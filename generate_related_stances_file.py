@@ -7,8 +7,8 @@ Created on Mon Nov  6 12:51:31 2017
 """
 import csv
 
-with open('./data/train_stances.csv') as inFile:
-    with open('./data/train_stances_related_only.csv', 'w+') as outfile:
+with open('./data/competition_test_stances.csv') as inFile:
+    with open('./data/comp_test_stances_related_only.csv', 'w+') as outfile:
         reader = csv.DictReader(inFile, delimiter=',', quotechar = '"')
         writer = csv.DictWriter(outfile, ['Headline','Body ID', 'Stance'])
         for row in reader:

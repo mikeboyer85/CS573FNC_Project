@@ -61,6 +61,7 @@ class fnc1_Data(object):
         self.body_vecs = {}
         self.stance_vecs = []
         self.vecs = vecs #save the vecs for use in other methods
+        self.labels=[]
         
         #Read stances
         with open(stancesFile,'r') as f:
@@ -72,6 +73,7 @@ class fnc1_Data(object):
                     stance = None
                 else:
                     hl, bid, stance = line
+                    self.labels.append(stances[stance])
                 self.stances.append((hl,bid,stance))
 
         self.n_stances = len(self.stances)
@@ -83,8 +85,10 @@ class fnc1_Data(object):
         #Transform the stance (headline only) into its vector representation
         for stance in self.stances:
             self.stance_vecs.append(vecs.transform([stance[0]]))
-        
-        
+            
+        self.batchStartIdx = 0
+            
+            
     def get_one(self, ridx=None):
         #select a single sample either randomly or by index
         if ridx is None:
@@ -123,7 +127,31 @@ class fnc1_Data(object):
         #clean up everything and return it
 
         return heads, bodies, stances_d
-
+    
+    def getNextTrainBatch(self, batchSize):
+        batchStart = self.batchStartIdx
+        
+        if batchStart + batchSize <= self.n_stances:
+            heads, bodies, stances_d = self.sample(n=1, ridx=(range(batchStart, batchStart + batchSize)))
+            self.batchStartIdx = batchStart + batchSize
+        else:
+            heads, bodies, stances_d = self.sample(n=1, ridx=(range(batchStart, self.n_stances)))
+            for i in range(batchSize - len(heads)):
+                head, body, stance_d = self.sample(n=1, ridx=[i])
+                np.append(heads, head)
+                np.append(bodies, body)
+                np.append(stances_d, stance_d)
+            self.batchStartIdx = i
+        
+        #stances_d is a scalar (e.g. [0] for agree). For training
+        #we want it to be a vector that matches a softmax output 
+        #(e.g. [1, 0, 0] for 'agree')
+        stanceVec = np.zeros((len(stances_d), len(stances.keys())))
+        for i in range(len(stances_d)):
+            s = stances_d[i]
+            stanceVec[i][s] = 1.0
+        
+        return heads, bodies, stanceVec
 
     def validate(self):
         #iterate over the dataset in order
@@ -134,8 +162,17 @@ class fnc1_Data(object):
 if __name__ == '__main__':
     v = GoogleVec()
     v.load()
-    val_news = fnc1_Data(stancesFile='./data/train_stances_related_only.csv', vecs=v, bodiesFile='./data/train_bodies.csv')
- 
+    trainData = fnc1_Data(stancesFile='./data/train_stances_related_only.csv', vecs=v, bodiesFile='./data/train_bodies.csv')
+    head, body, stance = trainData.sample(1, ridx=[0])
+    print(trainData.stances[0])
+    print(head)
+    print(body)
+    print(stance)
+    
+    h_vec = v.model.syn0[head]
+    b_vec = v.model.syn0[body]
+    print(h_vec.shape)
+    print(b_vec.shape)
 
  #   Copyright 2017 Cisco Systems, Inc.
  #
