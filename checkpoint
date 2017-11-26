@@ -1,0 +1,2 @@
+model_checkpoint_path: "fnc1_trained_params.ckpt"
+all_model_checkpoint_paths: "fnc1_trained_params.ckpt"
