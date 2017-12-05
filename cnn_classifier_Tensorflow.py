@@ -24,10 +24,10 @@ testBodiesFile = './data/competition_test_bodies.csv'
 #Static Params for FNC-1 / CS573 version
 classes = {'agree':0,'disagree':1,'discuss':2}
 n_classes = 3       #agree:0, disagree:1, discuss:2
-n_hidden = 64      #256 nodes in the first hidden layer. Other layers are multiples of this
+n_hidden = 32      #256 nodes in the first hidden layer. Other layers are multiples of this
 n_embDims = 300     #300 embedded dimensions considered in the NN.
-batch_size = 2     #Train on n stances at a time
-n_steps = 7000   #training steps. Solat used 35,000,000 
+batch_size = 3     #Train on n stances at a time
+n_steps = 20   #training steps. Solat used 35,000,000 
 keep_prob = 0.5 #for dropout = the probability that a node will be kept.
 learning_rate = 0.001
 
@@ -213,28 +213,36 @@ with tf.Session() as sess:
         print('Loading training data...')
         trainData = fnc1_Data(stancesFile=trainStancesFile, bodiesFile=trainBodiesFile, vecs=v)
 
+        #h_idxs, b_idxs, labels = trainData.getNextTrainBatch(batch_size)
+        h_idxs, b_idxs, labels = trainData.getNextTrainBatch(batch_size)
+        h_vecs = np.expand_dims(v.model.syn0[h_idxs], axis=3)
+        b_vecs = np.expand_dims(v.model.syn0[b_idxs], axis=3)
+
         #Training loop - Train over all of our training data in each batch (mini-batch gradient desc)
         for step in range(n_steps):
             t1 = time.time()
-            h_idxs, b_idxs, labels = trainData.getNextTrainBatch(batch_size)
-            h_vecs = np.expand_dims(v.model.syn0[h_idxs], axis=3)
-            b_vecs = np.expand_dims(v.model.syn0[b_idxs], axis=3)
+            #h_idxs, b_idxs, labels = trainData.getNextTrainBatch(batch_size)
+            #h_vecs = np.expand_dims(v.model.syn0[h_idxs], axis=3)
+            #b_vecs = np.expand_dims(v.model.syn0[b_idxs], axis=3)
             print(h_vecs.shape, b_vecs.shape)
             sess.run([train_op], feed_dict={h_tensor:h_vecs, 
                                  b_tensor:b_vecs, label_tensor:labels})
             #print('Step: {}, Time: {}'.format(step, time.time()-t1))
             
-            if step % 500 == 0 or step == 0:
+            #if step % 500 == 0 or step == 0:
                 #Print some nice debug info and persist our best info
-                loss, acc, p = sess.run([loss_op, accuracy, preds], feed_dict={h_tensor:h_vecs, 
+            loss, acc, p = sess.run([loss_op, accuracy, preds], feed_dict={h_tensor:h_vecs, 
                                  b_tensor:b_vecs, label_tensor:labels})
-                print(p)
-                #print(labels)
-                print("Step " + str(step) + ", Minibatch Loss= " + \
-                  "{:.4f}".format(loss) + ", Training Accuracy= " + \
-                  "{:.3f}".format(acc) + ", Step Time =" + \
-                  "{:.1f}".format(time.time() - t1))
-                saver.save(sess, save_path='./fnc1_trained_params.ckpt')
+    
+            print(acc)  
+    
+#                print(p)
+#                #print(labels)
+#                print("Step " + str(step) + ", Minibatch Loss= " + \
+#                  "{:.4f}".format(loss) + ", Training Accuracy= " + \
+#                  "{:.3f}".format(acc) + ", Step Time =" + \
+#                  "{:.1f}".format(time.time() - t1))
+#                saver.save(sess, save_path='./fnc1_trained_params.ckpt')
     else:
         raise Exception('Choose a mode - "train" to train the model, "pred" to predict the test data')        
 
